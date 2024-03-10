@@ -6,6 +6,7 @@ import com.reqserv.requestservice.exception.BadTicketStatusException;
 import com.reqserv.requestservice.exception.NoSuchTicketException;
 import com.reqserv.requestservice.model.Status;
 import com.reqserv.requestservice.service.TicketService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/tickets")
 @RequiredArgsConstructor
+@RequestMapping("/tickets")
+@Tag(name = "Ticket", description = "Ticket API")
 public class TicketController {
 
   private final TicketService ticketService;

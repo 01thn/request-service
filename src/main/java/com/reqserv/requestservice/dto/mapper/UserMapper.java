@@ -5,7 +5,7 @@ import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.model.User;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
 
   UserResponseDTO userToResponseDTO(User user);

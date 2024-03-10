@@ -4,6 +4,7 @@ import com.reqserv.requestservice.dto.UserRequestDTO;
 import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -23,8 +24,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/users")
 @RequiredArgsConstructor
+@RequestMapping("/users")
+@Tag(name = "User", description = "User API")
 public class UserController {
 
   private final UserService userService;

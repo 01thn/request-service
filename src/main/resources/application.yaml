@@ -1,15 +1,5 @@
 spring:
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/my_database}
+  r2dbc:
+    url: ${DB_URL:r2dbc:postgresql://localhost:5432/my_database}
     username: ${DB_USER:my_user}
     password: ${DB_PASS:my_password}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
-

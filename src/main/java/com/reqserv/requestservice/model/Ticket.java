@@ -1,23 +1,15 @@
 package com.reqserv.requestservice.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
 @Table(name = "tickets")
 @Getter
 @Setter
@@ -26,25 +18,28 @@ import lombok.Setter;
 public class Ticket {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column("id")
   private UUID id;
+
+  @Column("title")
   private String title;
+
+  @Column("description")
   private String description;
 
-  @ManyToOne
-  @JoinColumn(name = "author_id")
-  private User author;
+  @Column("author_id")
+  private UUID authorId;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status")
+  @Column("status")
   private Status status;
 
-  @ManyToOne
-  @JoinColumn(name = "operator_id")
-  private User operator;
+  @Column("operator_id")
+  private UUID operatorId;
 
+  @Column("created_at")
   private ZonedDateTime createdAt;
 
+  @Column("updated_at")
   private ZonedDateTime updatedAt;
 
 }

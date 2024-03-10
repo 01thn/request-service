@@ -1,25 +1,24 @@
 package com.reqserv.requestservice.repository;
 
-import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.model.Status;
 import com.reqserv.requestservice.model.Ticket;
-import com.reqserv.requestservice.model.User;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.r2dbc.repository.Modifying;
+import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface TicketRepository extends JpaRepository<Ticket, UUID> {
+public interface TicketRepository extends ReactiveCrudRepository<Ticket, UUID> {
 
-  default Optional<Ticket> updateTicketStatusById(UUID id, Status status) {
-    Optional<Ticket> optionalUser = findById(id);
-    optionalUser.ifPresent(ticket -> {
-      ticket.setStatus(status);
-      save(ticket);
-    });
-    return optionalUser;
-  }
+  @Query("SELECT * FROM ticket LIMIT :limit OFFSET :offset")
+  Flux<Ticket> findTicketsWithPagination(@Param("limit") int limit, @Param("offset") int offset);
+
+  @Modifying
+  @Query("UPDATE tickets SET status = :status WHERE id = :id")
+  Mono<Ticket> updateTicketStatusById(@Param("id") UUID id, @Param("status") Status status);
 
 }

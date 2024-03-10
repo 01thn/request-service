@@ -1,25 +1,15 @@
 package com.reqserv.requestservice.model;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
 @Table(name = "users")
 @Getter
 @Setter
@@ -28,29 +18,28 @@ import lombok.Setter;
 public class User {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column("id")
   private UUID id;
 
-  @Column(nullable = false, unique = true)
+  @Column("username")
   private String username;
 
-  @Column(nullable = false)
+  @Column("password")
   private String password;
 
+  @Column("first_name")
   private String firstName;
 
+  @Column("last_name")
   private String lastName;
 
-  @Column(nullable = false, unique = true)
+  @Column("phone")
   private String phone;
 
-  @Column(nullable = false, unique = true)
+  @Column("email")
   private String email;
 
-  @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
-  @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-  @Enumerated(EnumType.STRING)
+  @Column("roles")
   private Set<Role> roles;
 
 }
-

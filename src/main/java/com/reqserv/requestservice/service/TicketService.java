@@ -49,8 +49,8 @@ public class TicketService {
     if (optionalTicket.isPresent()) {
       Ticket ticket = optionalTicket.get();
       if (ticket.getStatus() == Status.DRAFT) {
-        ticket.setTitle(ticketRequest.getTitle());
-        ticket.setDescription(ticketRequest.getDescription());
+        ticket.setTitle(ticketRequest.title());
+        ticket.setDescription(ticketRequest.description());
         Ticket updatedTicket = ticketRepository.save(ticket);
         return Optional.of(ticketMapper.ticketToResponseDTO(updatedTicket));
       } else {

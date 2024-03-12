@@ -1,14 +1,11 @@
 package com.reqserv.requestservice.dto;
 
-import lombok.Builder;
-import lombok.Data;
+public record TicketRequestDTO(
 
-@Data
-@Builder
-public class TicketRequestDTO {
+    String title,
+    String description,
+    String status
 
-  private String title;
-  private String description;
-  private String status;
+) {
 
 }

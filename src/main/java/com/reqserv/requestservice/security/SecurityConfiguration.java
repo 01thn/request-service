@@ -25,6 +25,7 @@ import org.springframework.web.cors.CorsConfiguration;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
+
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final UserService userService;
 
@@ -42,10 +43,12 @@ public class SecurityConfiguration {
 
         .authorizeHttpRequests(request -> request
             .requestMatchers("/auth/**").permitAll()
-            .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**").permitAll()
+            .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**")
+            .permitAll()
             .requestMatchers("/endpoint", "/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
-        .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(
+            manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
@@ -69,4 +72,5 @@ public class SecurityConfiguration {
       throws Exception {
     return config.getAuthenticationManager();
   }
+
 }

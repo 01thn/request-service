@@ -42,8 +42,7 @@ public class UserService {
     return userRepository.updateUserRolesById(userId, roles).map(userMapper::userToResponseDTO);
   }
 
-  public UserResponseDTO create(UserRequestDTO userRequestDTO) throws UserAlreadyExists {
-    var user = userMapper.requestDTOToUser(userRequestDTO);
+  public UserResponseDTO create(User user) throws UserAlreadyExists {
     if (userRepository.existsByUsername(user.getUsername())) {
       throw new UserAlreadyExists("User with such username already exists");
     }

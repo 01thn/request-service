@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,7 +72,7 @@ public class TicketController {
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
-  @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+  @PreAuthorize("hasAnyRole('ROLE_OPERATOR', 'ROLE_ADMIN')")
   @GetMapping("/{id}")
   public ResponseEntity<TicketResponseDTO> getTicketById(@PathVariable UUID id) {
     Optional<TicketResponseDTO> ticket = ticketService.getTicketById(id);
@@ -86,8 +87,10 @@ public class TicketController {
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
+  @PreAuthorize("hasRole('ROLE_USER')")
   @PostMapping
   public ResponseEntity<TicketResponseDTO> saveTicket(@RequestBody TicketRequestDTO ticket) {
+    SecurityContextHolder.getContext().getAuthentication();
     return new ResponseEntity<>(ticketService.saveTicket(ticket), HttpStatus.CREATED);
   }
 
@@ -99,6 +102,7 @@ public class TicketController {
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
+  @PreAuthorize("hasRole('ROLE_USER')")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteTicket(@PathVariable UUID id)
       throws IllegalAccessException, NoSuchTicketException {
@@ -114,6 +118,7 @@ public class TicketController {
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
+  @PreAuthorize("hasAnyRole('ROLE_OPERATOR', 'ROLE_USER')")
   @PutMapping("/{id}/status")
   public ResponseEntity<TicketResponseDTO> updateTicketStatus(@PathVariable UUID id,
       @RequestParam Status status)
@@ -130,6 +135,7 @@ public class TicketController {
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
+  @PreAuthorize("hasRole('ROLE_USER')")
   @PutMapping("/{id}")
   public ResponseEntity<TicketResponseDTO> updateTicket(@PathVariable UUID id,
       @RequestBody TicketRequestDTO ticketRequest)
@@ -137,6 +143,30 @@ public class TicketController {
     Optional<TicketResponseDTO> updatedTicket = ticketService.updateTicket(id, ticketRequest);
     return updatedTicket.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 
+  }
+
+  @Operation(summary = "Get sent tickets by username with pagination", description = "Returns sent tickets by username")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully found"),
+      @ApiResponse(responseCode = "400", description = "Something went wrong"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
+      @ApiResponse(responseCode = "404", description = "Not found"),
+      @ApiResponse(responseCode = "500", description = "Server exception")
+  })
+  @PreAuthorize("hasRole('ROLE_OPERATOR')")
+  @GetMapping("/by-username")
+  public ResponseEntity<Page<TicketResponseDTO>> getSentTicketsByUsername(
+      @RequestParam(defaultValue = "0") int page,
+      String username,
+      @RequestParam SortOrder sortingOrder) {
+    PageRequest pageRequest = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+    if (SortOrder.ASC.equals(sortingOrder)) {
+      pageRequest = pageRequest.withSort(Sort.by("updatedAt").ascending());
+    } else if (SortOrder.DESC.equals(sortingOrder)) {
+      pageRequest = pageRequest.withSort(Sort.by("updatedAt").descending());
+    }
+    return ResponseEntity.ok(
+        ticketService.getSentTicketsByAuthorUsernameContains(pageRequest, username));
   }
 
 }

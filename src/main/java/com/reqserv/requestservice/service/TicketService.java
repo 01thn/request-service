@@ -31,9 +31,14 @@ public class TicketService {
 
   public Page<TicketResponseDTO> getAllTickets(Pageable pageable) {
     User currentUser = userService.getCurrentUser();
-    if (currentUser.getRoles().contains(Role.OPERATOR) || currentUser.getRoles()
-        .contains(Role.ADMIN)) {
-      return ticketRepository.findAll(pageable).map(ticketMapper::ticketToResponseDTO);
+    if (currentUser.getRoles().contains(Role.ROLE_ADMIN)) {
+      return ticketRepository.findAllByStatusIn(pageable,
+              Set.of(Status.SENT, Status.ACCEPTED, Status.REJECTED))
+          .map(ticketMapper::ticketToResponseDTO);
+    }
+    if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)) {
+      return ticketRepository.findAllByStatusIn(pageable, Set.of(Status.SENT))
+          .map(ticketMapper::ticketToResponseDTO);
     }
     return ticketRepository.findAllByAuthor(pageable, currentUser)
         .map(ticketMapper::ticketToResponseDTO);
@@ -54,10 +59,10 @@ public class TicketService {
   public void deleteTicket(UUID id) throws IllegalAccessException, NoSuchTicketException {
     Optional<TicketResponseDTO> ticketById = getTicketById(id);
     User currentUser = userService.getCurrentUser();
-    if (ticketById.isEmpty()){
+    if (ticketById.isEmpty()) {
       throw new NoSuchTicketException("Ticket not found");
     }
-    if (!checkSameUserAuthor(ticketById.get().author(), currentUser)){
+    if (!checkSameUserAuthor(ticketById.get().author(), currentUser)) {
       throw new IllegalAccessException();
     }
     ticketById.map(TicketResponseDTO::status).filter(it -> it.equals(Status.DRAFT))
@@ -78,23 +83,18 @@ public class TicketService {
       throw new IllegalAccessException("Cannot change status");
     }
 
-    if (currentUser.getRoles().contains(Role.OPERATOR)) {
-      return ticketRepository.updateTicketStatusAndOperatorById(ticketId, status, currentUser)
-          .map(ticketMapper::ticketToResponseDTO);
+    if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)) {
+      if (Status.ACCEPTED.equals(status) || Status.REJECTED.equals(status)) {
+        return ticketRepository.updateTicketStatusAndOperatorById(ticketId, status, currentUser)
+            .map(ticketMapper::ticketToResponseDTO);
+      } else {
+        throw new IllegalAccessException("Cannot change status");
+      }
+
     } else {
       return ticketRepository.updateTicketStatusById(ticketId, status)
           .map(ticketMapper::ticketToResponseDTO);
     }
-  }
-
-  private boolean canUpdateStatusByRole(User user, Status status,
-      TicketResponseDTO originalTicket) {
-    Set<Role> roles = user.getRoles();
-    if (roles.contains(Role.OPERATOR) || roles.contains(Role.ADMIN)) {
-      return true;
-    }
-    return (Status.SENT.equals(status) || Status.DRAFT.equals(status)) && checkSameUserAuthor(
-        originalTicket.author(), user);
   }
 
   public Optional<TicketResponseDTO> updateTicket(UUID ticketId, TicketRequestDTO ticketRequest)
@@ -103,7 +103,7 @@ public class TicketService {
     User currentUser = userService.getCurrentUser();
     if (optionalTicket.isPresent()) {
       Ticket ticket = optionalTicket.get();
-      if (!checkSameUserAuthor(ticket.getAuthor(), currentUser)){
+      if (!checkSameUserAuthor(ticket.getAuthor(), currentUser)) {
         throw new IllegalAccessException();
       }
       if (ticket.getStatus() == Status.DRAFT) {
@@ -117,6 +117,23 @@ public class TicketService {
     } else {
       throw new NoSuchTicketException("Ticket not found");
     }
+  }
+
+  public Page<TicketResponseDTO> getSentTicketsByAuthorUsernameContains(Pageable pageable,
+      String username) {
+    return ticketRepository.findByAuthorUsernameContainingIgnoreCaseAndStatus(pageable,
+        username, Status.SENT).map(
+        ticketMapper::ticketToResponseDTO);
+  }
+
+  private boolean canUpdateStatusByRole(User user, Status status,
+      TicketResponseDTO originalTicket) {
+    Set<Role> roles = user.getRoles();
+    if (roles.contains(Role.ROLE_OPERATOR) || roles.contains(Role.ROLE_ADMIN)) {
+      return true;
+    }
+    return (Status.SENT.equals(status) || Status.DRAFT.equals(status)) && checkSameUserAuthor(
+        originalTicket.author(), user);
   }
 
   private boolean checkSameUserAuthor(UserResponseDTO originalTicketAuthor, User editor) {

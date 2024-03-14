@@ -32,7 +32,7 @@ public class AuthenticationService {
         .firstName(request.firstName())
         .lastName(request.lastName())
         .phone(request.phone())
-        .roles(Set.of(Role.USER))
+        .roles(Set.of(Role.ROLE_USER))
         .build();
 
     userService.create(user);

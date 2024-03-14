@@ -1,18 +1,16 @@
 package com.reqserv.requestservice.model;
 
 
-public enum Role {
-  USER("User"),
-  OPERATOR("Operator"),
-  ADMIN("Admin");
+import org.springframework.security.core.GrantedAuthority;
 
-  private final String displayName;
+public enum Role implements GrantedAuthority {
+  ROLE_USER,
+  ROLE_OPERATOR,
+  ROLE_ADMIN;
 
-  Role(String displayName) {
-    this.displayName = displayName;
+  @Override
+  public String getAuthority() {
+    return name();
   }
 
-  public String getDisplayName() {
-    return displayName;
-  }
 }

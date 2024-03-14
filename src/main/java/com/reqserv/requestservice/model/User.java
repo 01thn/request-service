@@ -16,6 +16,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
@@ -64,7 +66,9 @@ public class User implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return null;
+    return roles.stream()
+        .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -86,5 +90,6 @@ public class User implements UserDetails {
   public boolean isEnabled() {
     return true;
   }
+
 }
 

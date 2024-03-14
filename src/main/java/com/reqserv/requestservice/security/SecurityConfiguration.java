@@ -1,5 +1,6 @@
 package com.reqserv.requestservice.security;
 
+import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.service.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class SecurityConfiguration {
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**")
             .permitAll()
-            .requestMatchers("/endpoint", "/admin/**").hasRole("ADMIN")
+            .requestMatchers("/admin/**").hasRole(String.valueOf(Role.ADMIN))
             .anyRequest().authenticated())
         .sessionManagement(
             manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

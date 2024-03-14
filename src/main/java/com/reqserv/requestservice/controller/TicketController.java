@@ -9,14 +9,17 @@ import com.reqserv.requestservice.service.TicketService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,32 +33,37 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/tickets")
+@SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Ticket", description = "Ticket API")
 public class TicketController {
 
   private final TicketService ticketService;
 
+  private static final Integer DEFAULT_PAGE_SIZE = 5;
+
   @Operation(summary = "Get all tickets with pagination", description = "Returns all tickets")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully found"),
       @ApiResponse(responseCode = "400", description = "Something went wrong"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
   @GetMapping
   public ResponseEntity<Page<TicketResponseDTO>> getAllTickets(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "4") int size) {
-    return ResponseEntity.ok(ticketService.getAllTickets(PageRequest.of(page, size)));
+      @RequestParam(defaultValue = "0") int page) {
+    return ResponseEntity.ok(ticketService.getAllTickets(PageRequest.of(page, DEFAULT_PAGE_SIZE)));
   }
 
   @Operation(summary = "Get ticket by id", description = "Returns ticket")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully found"),
       @ApiResponse(responseCode = "400", description = "Something went wrong"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
+  @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
   @GetMapping("/{id}")
   public ResponseEntity<TicketResponseDTO> getTicketById(@PathVariable UUID id) {
     Optional<TicketResponseDTO> ticket = ticketService.getTicketById(id);
@@ -66,6 +74,7 @@ public class TicketController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Successfully saved"),
       @ApiResponse(responseCode = "400", description = "Something went wrong"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
@@ -78,11 +87,13 @@ public class TicketController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Successfully deleted"),
       @ApiResponse(responseCode = "400", description = "Something went wrong"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteTicket(@PathVariable UUID id) {
+  public ResponseEntity<Void> deleteTicket(@PathVariable UUID id)
+      throws IllegalAccessException, NoSuchTicketException {
     ticketService.deleteTicket(id);
     return ResponseEntity.noContent().build();
   }
@@ -91,12 +102,14 @@ public class TicketController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Successfully changed"),
       @ApiResponse(responseCode = "400", description = "Something went wrong"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
   @PutMapping("/{id}/status")
   public ResponseEntity<TicketResponseDTO> updateTicketStatus(@PathVariable UUID id,
-      @RequestParam Status status) {
+      @RequestParam Status status)
+      throws IllegalAccessException, NoSuchTicketException {
     Optional<TicketResponseDTO> updatedTicket = ticketService.updateTicketStatus(id, status);
     return updatedTicket.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
@@ -105,13 +118,14 @@ public class TicketController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Successfully changed"),
       @ApiResponse(responseCode = "400", description = "Something went wrong"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
   @PutMapping("/{id}")
   public ResponseEntity<TicketResponseDTO> updateTicket(@PathVariable UUID id,
       @RequestBody TicketRequestDTO ticketRequest)
-      throws NoSuchTicketException, BadTicketStatusException {
+      throws NoSuchTicketException, BadTicketStatusException, IllegalAccessException {
     Optional<TicketResponseDTO> updatedTicket = ticketService.updateTicket(id, ticketRequest);
     return updatedTicket.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 

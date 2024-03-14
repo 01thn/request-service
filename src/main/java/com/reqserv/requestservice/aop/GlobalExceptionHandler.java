@@ -5,6 +5,7 @@ import com.reqserv.requestservice.exception.NoSuchTicketException;
 import com.reqserv.requestservice.exception.UserAlreadyExists;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -25,4 +26,16 @@ public class GlobalExceptionHandler {
   public ResponseEntity<String> handleUserAlreadyExists(UserAlreadyExists ex) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
   }
+
+  @ExceptionHandler(IllegalAccessException.class)
+  public ResponseEntity<String> handleIllegalAccessException(IllegalAccessException ex) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+  }
+
+
+  @ExceptionHandler(UsernameNotFoundException.class)
+  public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+  }
+
 }

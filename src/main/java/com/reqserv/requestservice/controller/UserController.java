@@ -4,6 +4,7 @@ import com.reqserv.requestservice.dto.UserRequestDTO;
 import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
+@SecurityRequirement(name = "bearerAuth")
 @Tag(name = "User", description = "User API")
 public class UserController {
 

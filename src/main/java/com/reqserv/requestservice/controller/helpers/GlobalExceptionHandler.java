@@ -1,4 +1,4 @@
-package com.reqserv.requestservice.aop;
+package com.reqserv.requestservice.controller.helpers;
 
 import com.reqserv.requestservice.exception.BadTicketStatusException;
 import com.reqserv.requestservice.exception.NoSuchTicketException;

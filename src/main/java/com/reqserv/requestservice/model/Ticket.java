@@ -16,6 +16,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "tickets")
@@ -43,8 +45,10 @@ public class Ticket {
   @JoinColumn(name = "operator_id")
   private User operator;
 
+  @CreationTimestamp
   private ZonedDateTime createdAt;
 
+  @UpdateTimestamp
   private ZonedDateTime updatedAt;
 
 }

@@ -1,6 +1,6 @@
 package com.reqserv.requestservice.controller;
 
-import com.reqserv.requestservice.dto.UserRequestDTO;
+import com.reqserv.requestservice.controller.helpers.SortOrder;
 import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.service.UserService;
@@ -12,12 +12,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,11 +32,19 @@ public class UserController {
 
   private final UserService userService;
 
+  private static final Integer DEFAULT_PAGE_SIZE = 5;
+
   @GetMapping
   public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "4") int size) {
-    return ResponseEntity.ok(userService.getAllUsers(PageRequest.of(page, size)));
+      @RequestParam SortOrder sortingOrder) {
+    PageRequest pageRequest = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+    if (SortOrder.ASC.equals(sortingOrder)) {
+      pageRequest = pageRequest.withSort(Sort.by("updatedAt").ascending());
+    } else if (SortOrder.DESC.equals(sortingOrder)) {
+      pageRequest = pageRequest.withSort(Sort.by("updatedAt").descending());
+    }
+    return ResponseEntity.ok(userService.getAllUsers(pageRequest));
   }
 
   @GetMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.reqserv.requestservice.controller;
 
+import com.reqserv.requestservice.controller.helpers.SortOrder;
 import com.reqserv.requestservice.dto.TicketRequestDTO;
 import com.reqserv.requestservice.dto.TicketResponseDTO;
 import com.reqserv.requestservice.exception.BadTicketStatusException;
@@ -14,9 +15,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,8 +52,15 @@ public class TicketController {
   })
   @GetMapping
   public ResponseEntity<Page<TicketResponseDTO>> getAllTickets(
-      @RequestParam(defaultValue = "0") int page) {
-    return ResponseEntity.ok(ticketService.getAllTickets(PageRequest.of(page, DEFAULT_PAGE_SIZE)));
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam SortOrder sortingOrder) {
+    PageRequest pageRequest = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+    if (SortOrder.ASC.equals(sortingOrder)) {
+      pageRequest = pageRequest.withSort(Sort.by("updatedAt").ascending());
+    } else if (SortOrder.DESC.equals(sortingOrder)) {
+      pageRequest = pageRequest.withSort(Sort.by("updatedAt").descending());
+    }
+    return ResponseEntity.ok(ticketService.getAllTickets(pageRequest));
   }
 
   @Operation(summary = "Get ticket by id", description = "Returns ticket")

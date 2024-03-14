@@ -1,5 +1,6 @@
 package com.reqserv.requestservice.dto;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public record UserResponseDTO(
@@ -9,7 +10,9 @@ public record UserResponseDTO(
     String phone,
     String email,
     String firstName,
-    String lastName
+    String lastName,
+    ZonedDateTime registeredAt
+
 ) {
 
 }

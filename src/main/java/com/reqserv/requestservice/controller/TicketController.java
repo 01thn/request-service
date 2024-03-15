@@ -123,8 +123,7 @@ public class TicketController {
   public ResponseEntity<TicketResponseDTO> updateTicketStatus(@PathVariable UUID id,
       @RequestParam Status status)
       throws IllegalAccessException, NoSuchTicketException {
-    Optional<TicketResponseDTO> updatedTicket = ticketService.updateTicketStatus(id, status);
-    return updatedTicket.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    return ResponseEntity.ok(ticketService.updateTicketStatus(id, status));
   }
 
   @Operation(summary = "Update ticket", description = "Updates ticket")
@@ -140,8 +139,7 @@ public class TicketController {
   public ResponseEntity<TicketResponseDTO> updateTicket(@PathVariable UUID id,
       @RequestBody TicketRequestDTO ticketRequest)
       throws NoSuchTicketException, BadTicketStatusException, IllegalAccessException {
-    Optional<TicketResponseDTO> updatedTicket = ticketService.updateTicket(id, ticketRequest);
-    return updatedTicket.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    return ResponseEntity.ok(ticketService.updateTicket(id, ticketRequest));
 
   }
 

@@ -15,11 +15,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,9 +40,9 @@ public class UserController {
       @RequestParam SortOrder sortingOrder) {
     PageRequest pageRequest = PageRequest.of(page, DEFAULT_PAGE_SIZE);
     if (SortOrder.ASC.equals(sortingOrder)) {
-      pageRequest = pageRequest.withSort(Sort.by("updatedAt").ascending());
+      pageRequest = pageRequest.withSort(Sort.by("registeredAt").ascending());
     } else if (SortOrder.DESC.equals(sortingOrder)) {
-      pageRequest = pageRequest.withSort(Sort.by("updatedAt").descending());
+      pageRequest = pageRequest.withSort(Sort.by("registeredAt").descending());
     }
     return ResponseEntity.ok(userService.getAllUsers(pageRequest));
   }
@@ -54,13 +52,6 @@ public class UserController {
   public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
     Optional<UserResponseDTO> user = userService.getUserById(id);
     return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-  }
-
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-    userService.deleteUser(id);
-    return ResponseEntity.noContent().build();
   }
 
   @PreAuthorize("hasRole('ROLE_ADMIN')")

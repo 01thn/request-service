@@ -11,6 +11,7 @@ import com.reqserv.requestservice.model.Status;
 import com.reqserv.requestservice.model.Ticket;
 import com.reqserv.requestservice.model.User;
 import com.reqserv.requestservice.repository.TicketRepository;
+import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -31,18 +32,21 @@ public class TicketService {
 
   public Page<TicketResponseDTO> getAllTickets(Pageable pageable) {
     User currentUser = userService.getCurrentUser();
+    Set<Status> allowedStatuses;
+
     if (currentUser.getRoles().contains(Role.ROLE_ADMIN)) {
-      return ticketRepository.findAllByStatusIn(pageable,
-              Set.of(Status.SENT, Status.ACCEPTED, Status.REJECTED))
+      allowedStatuses = EnumSet.of(Status.SENT, Status.ACCEPTED, Status.REJECTED);
+    } else if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)) {
+      allowedStatuses = EnumSet.of(Status.SENT);
+    } else {
+      return ticketRepository.findAllByAuthor(pageable, currentUser)
           .map(ticketMapper::ticketToResponseDTO);
     }
-    if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)) {
-      return ticketRepository.findAllByStatusIn(pageable, Set.of(Status.SENT))
-          .map(ticketMapper::ticketToResponseDTO);
-    }
-    return ticketRepository.findAllByAuthor(pageable, currentUser)
+
+    return ticketRepository.findAllByStatusIn(pageable, allowedStatuses)
         .map(ticketMapper::ticketToResponseDTO);
   }
+
 
   public Optional<TicketResponseDTO> getTicketById(UUID id) {
     return ticketRepository.findById(id).map(ticketMapper::ticketToResponseDTO);
@@ -56,67 +60,62 @@ public class TicketService {
     return ticketMapper.ticketToResponseDTO(ticketRepository.save(ticketFromRequest));
   }
 
-  public void deleteTicket(UUID id) throws IllegalAccessException, NoSuchTicketException {
-    Optional<TicketResponseDTO> ticketById = getTicketById(id);
+  public void deleteTicket(UUID id) throws NoSuchTicketException, IllegalAccessException {
+    Ticket ticket = ticketRepository.findById(id)
+        .orElseThrow(() -> new NoSuchTicketException("Ticket not found"));
+
     User currentUser = userService.getCurrentUser();
-    if (ticketById.isEmpty()) {
-      throw new NoSuchTicketException("Ticket not found");
-    }
-    if (!checkSameUserAuthor(ticketById.get().author(), currentUser)) {
+    if (!checkNotSameUserAuthor(ticket.getAuthor(), currentUser)) {
       throw new IllegalAccessException();
     }
-    ticketById.map(TicketResponseDTO::status).filter(it -> it.equals(Status.DRAFT))
-        .orElseThrow(() -> new IllegalAccessException("Cannot delete not draft ticket"));
+
+    if (ticket.getStatus() != Status.DRAFT) {
+      throw new IllegalAccessException("Cannot delete non-draft ticket");
+    }
+
     ticketRepository.deleteById(id);
   }
 
-  public Optional<TicketResponseDTO> updateTicketStatus(UUID ticketId, Status status)
-      throws IllegalAccessException, NoSuchTicketException {
-    Optional<TicketResponseDTO> ticketById = getTicketById(ticketId);
-
-    if (ticketById.isEmpty()) {
-      throw new NoSuchTicketException("Ticket not found");
-    }
+  public TicketResponseDTO updateTicketStatus(UUID ticketId, Status status)
+      throws NoSuchTicketException, IllegalAccessException {
+    Ticket ticket = ticketRepository.findById(ticketId)
+        .orElseThrow(() -> new NoSuchTicketException("Ticket not found"));
 
     User currentUser = userService.getCurrentUser();
-    if (!canUpdateStatusByRole(currentUser, status, ticketById.get())) {
+    if (!canUpdateStatusByRole(currentUser, status, ticket)) {
       throw new IllegalAccessException("Cannot change status");
     }
 
-    if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)) {
-      if (Status.ACCEPTED.equals(status) || Status.REJECTED.equals(status)) {
-        return ticketRepository.updateTicketStatusAndOperatorById(ticketId, status, currentUser)
-            .map(ticketMapper::ticketToResponseDTO);
-      } else {
-        throw new IllegalAccessException("Cannot change status");
-      }
-
+    if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)
+        && (Status.ACCEPTED.equals(status) || Status.REJECTED.equals(status))) {
+      ticket = ticketRepository.updateTicketStatusAndOperatorById(ticketId, status, currentUser)
+          .orElseThrow(() -> new NoSuchTicketException("Ticket not found"));
     } else {
-      return ticketRepository.updateTicketStatusById(ticketId, status)
-          .map(ticketMapper::ticketToResponseDTO);
+      throw new IllegalAccessException("Cannot change status");
     }
+
+    return ticketMapper.ticketToResponseDTO(ticket);
   }
 
-  public Optional<TicketResponseDTO> updateTicket(UUID ticketId, TicketRequestDTO ticketRequest)
+  public TicketResponseDTO updateTicket(UUID ticketId, TicketRequestDTO ticketRequest)
       throws BadTicketStatusException, NoSuchTicketException, IllegalAccessException {
-    Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
+    Ticket ticket = ticketRepository.findById(ticketId)
+        .orElseThrow(() -> new NoSuchTicketException("Ticket not found"));
+
     User currentUser = userService.getCurrentUser();
-    if (optionalTicket.isPresent()) {
-      Ticket ticket = optionalTicket.get();
-      if (!checkSameUserAuthor(ticket.getAuthor(), currentUser)) {
-        throw new IllegalAccessException();
-      }
-      if (ticket.getStatus() == Status.DRAFT) {
-        ticket.setTitle(ticketRequest.title());
-        ticket.setDescription(ticketRequest.description());
-        Ticket updatedTicket = ticketRepository.save(ticket);
-        return Optional.of(ticketMapper.ticketToResponseDTO(updatedTicket));
-      } else {
-        throw new BadTicketStatusException("Ticket was already sent");
-      }
-    } else {
-      throw new NoSuchTicketException("Ticket not found");
+    if (checkNotSameUserAuthor(ticket.getAuthor(), currentUser)) {
+      throw new IllegalAccessException();
     }
+
+    if (ticket.getStatus() != Status.DRAFT) {
+      throw new BadTicketStatusException("Ticket was already sent");
+    }
+
+    ticket.setTitle(ticketRequest.title());
+    ticket.setDescription(ticketRequest.description());
+
+    Ticket updatedTicket = ticketRepository.save(ticket);
+    return ticketMapper.ticketToResponseDTO(updatedTicket);
   }
 
   public Page<TicketResponseDTO> getSentTicketsByAuthorUsernameContains(Pageable pageable,
@@ -127,21 +126,17 @@ public class TicketService {
   }
 
   private boolean canUpdateStatusByRole(User user, Status status,
-      TicketResponseDTO originalTicket) {
+      Ticket originalTicket) {
     Set<Role> roles = user.getRoles();
     if (roles.contains(Role.ROLE_OPERATOR) || roles.contains(Role.ROLE_ADMIN)) {
       return true;
     }
-    return (Status.SENT.equals(status) || Status.DRAFT.equals(status)) && checkSameUserAuthor(
-        originalTicket.author(), user);
+    return (Status.SENT.equals(status) || Status.DRAFT.equals(status)) && !checkNotSameUserAuthor(
+        originalTicket.getAuthor(), user);
   }
 
-  private boolean checkSameUserAuthor(UserResponseDTO originalTicketAuthor, User editor) {
-    return originalTicketAuthor.username().equals(editor.getUsername());
-  }
-
-  private boolean checkSameUserAuthor(User originalTicketAuthor, User editor) {
-    return originalTicketAuthor.getUsername().equals(editor.getUsername());
+  private boolean checkNotSameUserAuthor(User originalTicketAuthor, User editor) {
+    return !originalTicketAuthor.getUsername().equals(editor.getUsername());
   }
 
 }

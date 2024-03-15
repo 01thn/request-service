@@ -32,10 +32,6 @@ public class UserService {
     return userRepository.findById(id).map(userMapper::userToResponseDTO);
   }
 
-  public void deleteUser(UUID id) {
-    userRepository.deleteById(id);
-  }
-
   public Optional<UserResponseDTO> updateUserRoles(UUID userId, Set<Role> roles) {
     return userRepository.updateUserRolesById(userId, roles).map(userMapper::userToResponseDTO);
   }

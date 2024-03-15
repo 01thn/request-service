@@ -24,7 +24,7 @@
       <column name="user_id" type="uuid">
         <constraints foreignKeyName="fk_user_roles_user_id" references="users(id)"/>
       </column>
-      <column name="role" type="varchar(255)"/>
+      <column name="roles" type="varchar(255)"/>
     </createTable>
   </changeSet>
 
@@ -67,7 +67,7 @@
   </changeSet>
   <changeSet id="assign_roles_to_users" author="tikhon.novitski@proton.me">
     <sql>
-      INSERT INTO user_roles (user_id, role)
+      INSERT INTO user_roles (user_id, roles)
       VALUES
         ('042d997d-4c9e-4e12-9aab-058407c36095', 'ROLE_USER'),
         ('7fe4dda1-bae5-447d-b4f0-44255e2fe1a4', 'ROLE_OPERATOR'),

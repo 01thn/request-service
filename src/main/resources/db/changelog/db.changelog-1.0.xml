@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+  <changeSet id="create_users_table" author="tikhon.novitski@proton.me">
+    <createTable tableName="users">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="username" type="varchar(255)"/>
+      <column name="password" type="varchar(255)"/>
+      <column name="first_name" type="varchar(255)"/>
+      <column name="last_name" type="varchar(255)"/>
+      <column name="phone" type="varchar(255)"/>
+      <column name="email" type="varchar(255)"/>
+      <column name="registered_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="create_user_roles_table" author="tikhon.novitski@proton.me">
+    <createTable tableName="user_roles">
+      <column name="user_id" type="uuid">
+        <constraints foreignKeyName="fk_user_roles_user_id" references="users(id)"/>
+      </column>
+      <column name="role" type="varchar(255)"/>
+    </createTable>
+  </changeSet>
+
+
+  <changeSet id="create_tickets_table" author="tikhon.novitski@proton.me">
+    <createTable tableName="tickets">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="title" type="varchar(255)"/>
+      <column name="description" type="text"/>
+      <column name="author_id" type="uuid">
+        <constraints foreignKeyName="fk_tickets_author_id" references="users(id)"/>
+      </column>
+      <column name="status" type="varchar(255)"/>
+      <column name="operator_id" type="uuid">
+        <constraints foreignKeyName="fk_tickets_operator_id" references="users(id)"/>
+      </column>
+      <column name="created_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="insert_users_with_roles" author="tikhon.novitski@proton.me">
+    <sql>
+        <![CDATA[
+      INSERT INTO users (id, username, password, first_name, last_name, phone, email, registered_at)
+      VALUES
+        ('042d997d-4c9e-4e12-9aab-058407c36095', 'user1', '$2a$10$6zfJRHpV9.NY9JPSn7PiDeJd6LpBBFZbl..2dxZIT/vtDnVFzOzKC', 'User', 'One', '37589612309969', 'user1@example.com', NOW()),
+        ('7fe4dda1-bae5-447d-b4f0-44255e2fe1a4', 'user2', '$2a$10$b.TU/u2MURSg4ctnQop1geuLQOZENcdQKvghq/TZ1nMaSEO9He6ha', 'User', 'Two', '3757187354904', 'user2@example.com', NOW()),
+        ('6fdd6d09-65bd-4758-8ccc-9eb5b2e8ce6e', 'user3', '$2a$10$dDlyHyunWE7Pm/D4zkMDkumXHMM3iZanTdnWT3rSSyYZwpOUI/36u', 'User', 'Three', '7498837464', 'user3@example.com', NOW()),
+        ('acbb6d56-f1f5-4624-9de8-c043045686cf', 'user4', '$2a$10$t50Tg3TPPpYgA/s2mlYlr.lzzNjT7OEXIZDshQ1zlvE2qqZV/mxj6', 'User', 'Four', '758912188152', 'user4@example.com', NOW()),
+        ('adecbd6e-7be8-48aa-9f2a-c1e267fe6661', 'user5', '$2a$10$dtq7jxnc03uTMLTRk9oooesq/EC6ou1V3px347GRJUf0kUzHLuQqK', 'User', 'Five', '130022025958', 'user5@example.com', NOW());
+      ]]>
+    </sql>
+  </changeSet>
+  <changeSet id="assign_roles_to_users" author="tikhon.novitski@proton.me">
+    <sql>
+      INSERT INTO user_roles (user_id, role)
+      VALUES
+        ('042d997d-4c9e-4e12-9aab-058407c36095', 'ROLE_USER'),
+        ('7fe4dda1-bae5-447d-b4f0-44255e2fe1a4', 'ROLE_OPERATOR'),
+        ('6fdd6d09-65bd-4758-8ccc-9eb5b2e8ce6e', 'ROLE_ADMIN'),
+        ('acbb6d56-f1f5-4624-9de8-c043045686cf', 'ROLE_USER'),
+        ('acbb6d56-f1f5-4624-9de8-c043045686cf', 'ROLE_ADMIN'),
+        ('adecbd6e-7be8-48aa-9f2a-c1e267fe6661', 'ROLE_OPERATOR'),
+        ('adecbd6e-7be8-48aa-9f2a-c1e267fe6661', 'ROLE_ADMIN');
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

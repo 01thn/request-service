@@ -90,7 +90,6 @@ public class TicketController {
   @PreAuthorize("hasRole('ROLE_USER')")
   @PostMapping
   public ResponseEntity<TicketResponseDTO> saveTicket(@RequestBody TicketRequestDTO ticket) {
-    SecurityContextHolder.getContext().getAuthentication();
     return new ResponseEntity<>(ticketService.saveTicket(ticket), HttpStatus.CREATED);
   }
 

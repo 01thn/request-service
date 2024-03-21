@@ -2,6 +2,8 @@ package com.reqserv.requestservice.controller;
 
 import com.reqserv.requestservice.dto.LoginResponseDTO;
 import com.reqserv.requestservice.dto.SignInRequestDTO;
+import com.reqserv.requestservice.dto.SignUpRequestDTO;
+import com.reqserv.requestservice.exception.UserAlreadyExists;
 import com.reqserv.requestservice.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,6 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final AuthenticationService authenticationService;
+
+  @Operation(summary = "Sign up for new user")
+  @PostMapping("/sign-up")
+  public LoginResponseDTO signUp(@RequestBody @Valid SignUpRequestDTO request)
+      throws UserAlreadyExists {
+    return authenticationService.signUp(request);
+  }
 
   @Operation(summary = "Sign in for exisiting user")
   @PostMapping("/sign-in")

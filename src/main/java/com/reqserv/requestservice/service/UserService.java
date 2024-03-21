@@ -2,6 +2,7 @@ package com.reqserv.requestservice.service;
 
 import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.dto.mapper.UserMapper;
+import com.reqserv.requestservice.exception.UserAlreadyExists;
 import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.model.User;
 import com.reqserv.requestservice.repository.UserRepository;
@@ -23,6 +24,18 @@ public class UserService {
   private final UserRepository userRepository;
 
   private final UserMapper userMapper;
+
+  public UserResponseDTO create(User user) throws UserAlreadyExists {
+    if (userRepository.existsByUsername(user.getUsername())) {
+      throw new UserAlreadyExists("User with such username already exists");
+    }
+
+    if (userRepository.existsByEmail(user.getEmail())) {
+      throw new RuntimeException("User with such email already exists");
+    }
+
+    return userMapper.userToResponseDTO(save(user));
+  }
 
   public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
     return userRepository.findAll(pageable).map(userMapper::userToResponseDTO);
@@ -48,6 +61,10 @@ public class UserService {
   public User getCurrentUser() {
     var username = SecurityContextHolder.getContext().getAuthentication().getName();
     return getByUsername(username);
+  }
+
+  private User save(User user) {
+    return userRepository.save(user);
   }
 
 }

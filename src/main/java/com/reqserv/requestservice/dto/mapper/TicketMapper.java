@@ -5,7 +5,7 @@ import com.reqserv.requestservice.dto.TicketResponseDTO;
 import com.reqserv.requestservice.model.Ticket;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface TicketMapper {
 
   TicketResponseDTO ticketToResponseDTO(Ticket ticket);

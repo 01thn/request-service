@@ -1,33 +1,38 @@
 package com.reqserv.requestservice.controller;
 
-import com.reqserv.requestservice.dto.UserRequestDTO;
-import com.reqserv.requestservice.dto.UserResponseDTO;
+import com.reqserv.requestservice.dto.LoginResponseDTO;
+import com.reqserv.requestservice.dto.SignInRequestDTO;
+import com.reqserv.requestservice.dto.SignUpRequestDTO;
 import com.reqserv.requestservice.exception.UserAlreadyExists;
-import com.reqserv.requestservice.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import com.reqserv.requestservice.service.AuthenticationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
+@Tag(name = "Auth", description = "Auth API")
 public class AuthController {
-  @Autowired
-  private UserService userService;
 
-  @PostMapping("/register")
-  public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRequestDTO user)
+  private final AuthenticationService authenticationService;
+
+  @Operation(summary = "Sign up for new user")
+  @PostMapping("/sign-up")
+  public LoginResponseDTO signUp(@RequestBody @Valid SignUpRequestDTO request)
       throws UserAlreadyExists {
-
-    return ResponseEntity.ok(userService.registerUser(user));
+    return authenticationService.signUp(request);
   }
 
-  @PostMapping("/login")
-  public ResponseEntity<String> loginUser(@RequestParam String username, @RequestParam String password) throws Exception {
-    String token = userService.loginUser(username, password);
-    return ResponseEntity.ok(token);
+  @Operation(summary = "Sign in for exisiting user")
+  @PostMapping("/sign-in")
+  public LoginResponseDTO signIn(@RequestBody @Valid SignInRequestDTO request) {
+    return authenticationService.signIn(request);
   }
+
 }

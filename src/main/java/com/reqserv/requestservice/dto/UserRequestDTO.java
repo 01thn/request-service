@@ -1,17 +1,14 @@
 package com.reqserv.requestservice.dto;
 
-import lombok.Builder;
-import lombok.Data;
+public record UserRequestDTO(
 
-@Data
-@Builder
-public class UserRequestDTO {
+    String username,
+    String password,
+    String phone,
+    String email,
+    String firstName,
+    String lastName
 
-  private String username;
-  private String password;
-  private String phone;
-  private String email;
-  private String firstName;
-  private String lastName;
+) {
 
 }

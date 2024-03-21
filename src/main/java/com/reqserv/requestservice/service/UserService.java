@@ -1,21 +1,20 @@
 package com.reqserv.requestservice.service;
 
-import com.reqserv.requestservice.dto.UserRequestDTO;
 import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.dto.mapper.UserMapper;
 import com.reqserv.requestservice.exception.UserAlreadyExists;
 import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.model.User;
 import com.reqserv.requestservice.repository.UserRepository;
-import com.reqserv.requestservice.security.JwtUtil;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,9 +25,17 @@ public class UserService {
 
   private final UserMapper userMapper;
 
-  private final PasswordEncoder passwordEncoder;
+  public UserResponseDTO create(User user) throws UserAlreadyExists {
+    if (userRepository.existsByUsername(user.getUsername())) {
+      throw new UserAlreadyExists("User with such username already exists");
+    }
 
-  private final JwtUtil jwtUtil;
+    if (userRepository.existsByEmail(user.getEmail())) {
+      throw new RuntimeException("User with such email already exists");
+    }
+
+    return userMapper.userToResponseDTO(save(user));
+  }
 
   public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
     return userRepository.findAll(pageable).map(userMapper::userToResponseDTO);
@@ -38,32 +45,26 @@ public class UserService {
     return userRepository.findById(id).map(userMapper::userToResponseDTO);
   }
 
-  public void deleteUser(UUID id) {
-    userRepository.deleteById(id);
-  }
-
   public Optional<UserResponseDTO> updateUserRoles(UUID userId, Set<Role> roles) {
     return userRepository.updateUserRolesById(userId, roles).map(userMapper::userToResponseDTO);
   }
 
-  public UserResponseDTO registerUser(UserRequestDTO user) throws UserAlreadyExists {
-    Optional<User> byUsername = userRepository.findByUsername(user.getUsername());
-    if (byUsername.isPresent()) {
-      throw new UserAlreadyExists("User with such username already exists");
-    }
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userMapper.userToResponseDTO(userRepository.save(userMapper.requestDTOToUser(user)));
+  private User getByUsername(String username) {
+    return userRepository.findByUsername(username)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
   }
 
-  public String loginUser(String username, String password) throws Exception {
-    User user = userRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+  public UserDetailsService userDetailsService() {
+    return this::getByUsername;
+  }
 
-    if (!passwordEncoder.matches(password, user.getPassword())) {
-      throw new Exception("Invalid username or password");
-    }
+  public User getCurrentUser() {
+    var username = SecurityContextHolder.getContext().getAuthentication().getName();
+    return getByUsername(username);
+  }
 
-    return jwtUtil.generateToken(username);
+  private User save(User user) {
+    return userRepository.save(user);
   }
 
 }

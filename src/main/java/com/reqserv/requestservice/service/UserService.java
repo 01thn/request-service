@@ -50,7 +50,7 @@ public class UserService {
   }
 
   private User getByUsername(String username) {
-    return userRepository.findByUsername(username)
+    return userRepository.findByUsername(username.toLowerCase())
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
   }
 

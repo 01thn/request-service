@@ -26,7 +26,7 @@ public class AuthenticationService {
   public LoginResponseDTO signUp(SignUpRequestDTO request) throws UserAlreadyExists {
 
     var user = User.builder()
-        .username(request.username())
+        .username(request.username().toLowerCase())
         .email(request.email())
         .password(passwordEncoder.encode(request.password()))
         .firstName(request.firstName())
@@ -43,13 +43,13 @@ public class AuthenticationService {
 
   public LoginResponseDTO signIn(SignInRequestDTO request) {
     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-        request.username(),
+        request.username().toLowerCase(),
         request.password()
     ));
 
     var user = userService
         .userDetailsService()
-        .loadUserByUsername(request.username());
+        .loadUserByUsername(request.username().toLowerCase());
 
     var jwt = jwtService.generateToken(user);
     return new LoginResponseDTO(jwt);

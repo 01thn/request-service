@@ -4,7 +4,7 @@
 
 ## Описание стека
 
-- **Версия Java**: 17
+- **Версия Java**: 21
 - **Фреймворк**: Spring Boot
 - **База данных**: PostgreSQL
 - **ORM**: Spring Data JPA

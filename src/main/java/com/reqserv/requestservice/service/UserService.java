@@ -31,7 +31,7 @@ public class UserService {
     }
 
     if (userRepository.existsByEmail(user.getEmail())) {
-      throw new RuntimeException("User with such email already exists");
+      throw new UserAlreadyExists("User with such email already exists");
     }
 
     return userMapper.userToResponseDTO(save(user));

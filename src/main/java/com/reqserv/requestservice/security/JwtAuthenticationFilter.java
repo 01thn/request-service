@@ -1,6 +1,7 @@
 package com.reqserv.requestservice.security;
 
 import com.reqserv.requestservice.service.UserService;
+import jakarta.security.auth.message.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

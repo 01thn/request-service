@@ -31,7 +31,7 @@ public class UserService {
     }
 
     if (userRepository.existsByEmail(user.getEmail())) {
-      throw new RuntimeException("User with such email already exists");
+      throw new UserAlreadyExists("User with such email already exists");
     }
 
     return userMapper.userToResponseDTO(save(user));
@@ -50,7 +50,7 @@ public class UserService {
   }
 
   private User getByUsername(String username) {
-    return userRepository.findByUsername(username)
+    return userRepository.findByUsername(username.toLowerCase())
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
   }
 

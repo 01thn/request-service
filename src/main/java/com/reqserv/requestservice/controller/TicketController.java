@@ -21,9 +21,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -72,7 +72,7 @@ public class TicketController {
       @ApiResponse(responseCode = "404", description = "Not found"),
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
-  @PreAuthorize("hasAnyRole('ROLE_OPERATOR', 'ROLE_ADMIN')")
+  @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_OPERATOR', 'ROLE_ADMIN')")
   @GetMapping("/{id}")
   public ResponseEntity<TicketResponseDTO> getTicketById(@PathVariable UUID id) {
     Optional<TicketResponseDTO> ticket = ticketService.getTicketById(id);
@@ -118,7 +118,7 @@ public class TicketController {
       @ApiResponse(responseCode = "500", description = "Server exception")
   })
   @PreAuthorize("hasAnyRole('ROLE_OPERATOR', 'ROLE_USER')")
-  @PutMapping("/{id}/status")
+  @PatchMapping("/{id}")
   public ResponseEntity<TicketResponseDTO> updateTicketStatus(@PathVariable UUID id,
       @RequestParam Status status)
       throws IllegalAccessException, NoSuchTicketException {

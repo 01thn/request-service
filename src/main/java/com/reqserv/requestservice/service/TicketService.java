@@ -2,7 +2,6 @@ package com.reqserv.requestservice.service;
 
 import com.reqserv.requestservice.dto.TicketRequestDTO;
 import com.reqserv.requestservice.dto.TicketResponseDTO;
-import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.dto.mapper.TicketMapper;
 import com.reqserv.requestservice.exception.BadTicketStatusException;
 import com.reqserv.requestservice.exception.NoSuchTicketException;
@@ -86,12 +85,12 @@ public class TicketService {
       throw new IllegalAccessException("Cannot change status");
     }
 
-    if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)
-        && (Status.ACCEPTED.equals(status) || Status.REJECTED.equals(status))) {
+    if (currentUser.getRoles().contains(Role.ROLE_OPERATOR)) {
       ticket = ticketRepository.updateTicketStatusAndOperatorById(ticketId, status, currentUser)
           .orElseThrow(() -> new NoSuchTicketException("Ticket not found"));
     } else {
-      throw new IllegalAccessException("Cannot change status");
+      ticket = ticketRepository.updateTicketStatusById(ticketId, status)
+          .orElseThrow(() -> new NoSuchTicketException("Ticket not found"));
     }
 
     return ticketMapper.ticketToResponseDTO(ticket);
@@ -128,8 +127,11 @@ public class TicketService {
   private boolean canUpdateStatusByRole(User user, Status status,
       Ticket originalTicket) {
     Set<Role> roles = user.getRoles();
-    if (roles.contains(Role.ROLE_OPERATOR) || roles.contains(Role.ROLE_ADMIN)) {
+    if (roles.contains(Role.ROLE_ADMIN)) {
       return true;
+    }
+    if (roles.contains(Role.ROLE_OPERATOR)) {
+      return (Status.ACCEPTED.equals(status) || Status.REJECTED.equals(status));
     }
     return (Status.SENT.equals(status) || Status.DRAFT.equals(status)) && !checkNotSameUserAuthor(
         originalTicket.getAuthor(), user);

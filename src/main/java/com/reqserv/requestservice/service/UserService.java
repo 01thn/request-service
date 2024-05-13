@@ -1,5 +1,6 @@
 package com.reqserv.requestservice.service;
 
+import com.reqserv.requestservice.annotation.LogExecutionTime;
 import com.reqserv.requestservice.dto.UserResponseDTO;
 import com.reqserv.requestservice.dto.mapper.UserMapper;
 import com.reqserv.requestservice.exception.UserAlreadyExists;
@@ -18,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@LogExecutionTime
 @RequiredArgsConstructor
 public class UserService {
 

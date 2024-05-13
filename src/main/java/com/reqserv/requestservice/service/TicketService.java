@@ -1,5 +1,6 @@
 package com.reqserv.requestservice.service;
 
+import com.reqserv.requestservice.annotation.LogExecutionTime;
 import com.reqserv.requestservice.dto.TicketRequestDTO;
 import com.reqserv.requestservice.dto.TicketResponseDTO;
 import com.reqserv.requestservice.dto.mapper.TicketMapper;
@@ -11,6 +12,7 @@ import com.reqserv.requestservice.model.Ticket;
 import com.reqserv.requestservice.model.User;
 import com.reqserv.requestservice.repository.TicketRepository;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@LogExecutionTime
 @RequiredArgsConstructor
 public class TicketService {
 
@@ -45,7 +48,6 @@ public class TicketService {
     return ticketRepository.findAllByStatusIn(pageable, allowedStatuses)
         .map(ticketMapper::ticketToResponseDTO);
   }
-
 
   public Optional<TicketResponseDTO> getTicketById(UUID id) {
     return ticketRepository.findById(id).map(ticketMapper::ticketToResponseDTO);
@@ -95,6 +97,7 @@ public class TicketService {
 
     return ticketMapper.ticketToResponseDTO(ticket);
   }
+
 
   public TicketResponseDTO updateTicket(UUID ticketId, TicketRequestDTO ticketRequest)
       throws BadTicketStatusException, NoSuchTicketException, IllegalAccessException {

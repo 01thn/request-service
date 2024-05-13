@@ -2,13 +2,16 @@ package com.reqserv.requestservice.controller;
 
 import com.reqserv.requestservice.controller.helpers.SortOrder;
 import com.reqserv.requestservice.dto.UserResponseDTO;
+import com.reqserv.requestservice.dto.UserRolesDTO;
 import com.reqserv.requestservice.model.Role;
 import com.reqserv.requestservice.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,8 +62,8 @@ public class UserController {
   @PutMapping("/{id}/roles")
   public ResponseEntity<UserResponseDTO> updateUserRoles(
       @PathVariable UUID id,
-      @RequestParam Set<Role> roles) {
-    Optional<UserResponseDTO> updatedUser = userService.updateUserRoles(id, roles);
+      @RequestBody UserRolesDTO userRolesUpdateDto) {
+    Optional<UserResponseDTO> updatedUser = userService.updateUserRoles(id, userRolesUpdateDto.roles());
     return updatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 

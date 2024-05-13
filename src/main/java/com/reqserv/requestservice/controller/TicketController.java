@@ -41,8 +41,6 @@ public class TicketController {
 
   private final TicketService ticketService;
 
-  private static final Integer DEFAULT_PAGE_SIZE = 5;
-
   @Operation(summary = "Get all tickets with pagination", description = "Returns all tickets")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully found"),
@@ -54,8 +52,9 @@ public class TicketController {
   @GetMapping
   public ResponseEntity<Page<TicketResponseDTO>> getAllTickets(
       @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "5") int size,
       @RequestParam SortOrder sortingOrder) {
-    PageRequest pageRequest = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+    PageRequest pageRequest = PageRequest.of(page, size);
     if (SortOrder.ASC.equals(sortingOrder)) {
       pageRequest = pageRequest.withSort(Sort.by("updatedAt").ascending());
     } else if (SortOrder.DESC.equals(sortingOrder)) {
@@ -154,9 +153,10 @@ public class TicketController {
   @GetMapping("/by-username")
   public ResponseEntity<Page<TicketResponseDTO>> getSentTicketsByUsername(
       @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "0") int size,
       String username,
       @RequestParam SortOrder sortingOrder) {
-    PageRequest pageRequest = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+    PageRequest pageRequest = PageRequest.of(page, size);
     if (SortOrder.ASC.equals(sortingOrder)) {
       pageRequest = pageRequest.withSort(Sort.by("updatedAt").ascending());
     } else if (SortOrder.DESC.equals(sortingOrder)) {

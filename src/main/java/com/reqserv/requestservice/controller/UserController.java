@@ -35,14 +35,13 @@ public class UserController {
 
   private final UserService userService;
 
-  private static final Integer DEFAULT_PAGE_SIZE = 5;
-
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   @GetMapping
   public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
       @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "5") int size,
       @RequestParam SortOrder sortingOrder) {
-    PageRequest pageRequest = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+    PageRequest pageRequest = PageRequest.of(page, size);
     if (SortOrder.ASC.equals(sortingOrder)) {
       pageRequest = pageRequest.withSort(Sort.by("registeredAt").ascending());
     } else if (SortOrder.DESC.equals(sortingOrder)) {
